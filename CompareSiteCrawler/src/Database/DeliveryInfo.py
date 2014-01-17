@@ -39,7 +39,7 @@ class DeliveryInfo():
         #Get the webID and phoneID first...
         self.getWebID()
         self.getPhoneID()
-        
+
         com = "SELECT price, availability FROM deliveryinfo WHERE website_id = (%s) AND phone_id = (%s)"
         vals = [self.webID, self.phoneID]
         result = self.db.select(com, vals)
@@ -54,7 +54,7 @@ class DeliveryInfo():
         #Get the webID and phoneID first...
         self.getWebID()
         self.getPhoneID()
-
+        
         com = "UPDATE deliveryinfo SET price = (%s), availability = (%s) WHERE website_id = (%s) AND phone_id = (%s)"
         vals = [self.price, self.availability, self.webID, self.phoneID]
         self.db.insert(com, vals)

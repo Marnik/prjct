@@ -1,26 +1,38 @@
 import requests
 from bs4 import BeautifulSoup
 from Database import DeliveryInfo
+from CrawlerHelpScripts import TimeCalculator, Comparator
+import time
+
 
 class Crawler():
     
     def main(self):
         # Get the HTML of the page using BeautifulSoup
         url = requests.get('http://www.pdashop.nl/product/294645/samsung-galaxy-s4.html?efas=a&__utma=1.97495333.1389036227.1389119630.1389124331.3&__utmb=1.12.8.1389124360997&__utmc=1&__utmx=-&__utmz=1.1389036227.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided)&__utmv=-&__utmk=161692988')
-        #url = requests.get('http://www.pdashop.nl/product/395325/category-4214-smartphone-keuzehulp/nexus-5-wit.html')
+        #url = requests.get('http://www.smartphoneshop.nl/product/315855/category-161308-smartphones/alcatel-one-touch-idol-zilver.html')
         self.soup = BeautifulSoup(url.text)
-
+        
         #Call procedures to gather all info needed.
         self.getPrice()
         self.getAvailability()
         self.getPhoneBrand()
         self.getPhoneType()
-        self.compare()
-        
+        print self.price
+        # Instantiate comparator to compare crawled data to database data and update the database if needed.
+        comparator = Comparator.Comparator(self.availability, self.price, 'www.coolblue.nl', self.brand, self.type)
+        comparator.compare()
+
     def getPrice(self): #Procedure to extract price and availability status from the web page.        
         #Get the relevant HTML to get the price from, then get the price
         priceSoup = self.soup.find('div', attrs={'class' : 'price'}).text
         self.price = priceSoup[3:].strip()
+        
+        #If price contains a '-', like '450,-', replace it with '00' to avoid truncated data.
+        if (str(self.price.find('-')) != -1):
+            self.price = self.price.replace('-', '00')
+        #Replace , with a '.' to avoid truncated data
+        self.price = self.price.replace(',', '.')
         
     def getAvailability(self): #Procedure to extract the availability of the product.
         #Get the right part of HTML and extract the aailability from it.
@@ -29,14 +41,24 @@ class Crawler():
         endQuote = availabilitySoup[beginQuote:].find('"') + beginQuote
         self.availability = availabilitySoup[beginQuote:endQuote]
         
-        #If it is available, availability must be set to 'Direct!'
+        #Numeric values are used for the availability. The number indicates the amount of days it will take for it to be available.
+        #If it is available, availability must be set to 0'
         if self.availability == 'op voorraad':
-            self.availability = 'Direct!'
+            self.availability = 0
         else: #If it's not in stock, availability must be set to the expected arrival time of the product.
             availabilitySoup = str(self.soup.find('div', attrs="productInformationHeaderCollection"))
             begin = availabilitySoup[availabilitySoup.find('Verwacht:'):].find('state3') + 8 + availabilitySoup.find('Verwacht')
             end = availabilitySoup[begin:].find('<') + begin
             self.availability = availabilitySoup[begin:end]
+            
+            if self.availability == 'leverdatum onbekend': #If availability date is unknown, give it a -1 value. 
+                self.availability = -1
+            elif self.availability[:4] == 'week':
+                #Extract only the date (day, month)
+                date = self.availability[self.availability.find('-')+2:]
+                #Instantiate module to calculate the difference between today and availability date.
+                timecalculator = TimeCalculator.TimeCalculator(date)
+                self.availability = timecalculator.caluclateTime()
     
     def getPhoneBrand(self): #Procedure to find the phone brand and type
         #Search for the relevant HTML and extract phone brand

@@ -22,9 +22,9 @@ class TimeCalculator():
         #Next, calculate the number for the date on which the product will be available. Example: Januari must become 01
         self.date = self.date.split() #Split the day from month first
         availabilityMonth = self.months.index(self.date[1]) +1
-        
+
         #If the current date is 11(december) and the availabilitydate is lower, it means it is in the next year.
-        if (availabilityMonth < curTime[1]) or (availabilityMonth < curTime[1] and self.date < curTime[0]):
+        if (availabilityMonth < int(curTime[1])) or (availabilityMonth <= int(curTime[1]) and int(self.date[0]) <= int(curTime[0])):
             availabilityYear = int(curTime[2]) + 1
         else:
             availabilityYear = curTime[2]
@@ -34,5 +34,8 @@ class TimeCalculator():
         #Calculate the difference between the two dates. Then return only the days.
         dateDifference = availabilityDate - curDate
         dateDifference = str(dateDifference).split()
+        print dateDifference[0]
         return dateDifference[0]
+bla = TimeCalculator('4 oktober')
+bla.caluclateTime()
         

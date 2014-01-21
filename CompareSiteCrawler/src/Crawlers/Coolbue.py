@@ -10,7 +10,6 @@ class Crawler():
     def main(self):
         # Get the HTML of the page using BeautifulSoup
         url = requests.get('http://www.pdashop.nl/product/294645/samsung-galaxy-s4.html?efas=a&__utma=1.97495333.1389036227.1389119630.1389124331.3&__utmb=1.12.8.1389124360997&__utmc=1&__utmx=-&__utmz=1.1389036227.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided)&__utmv=-&__utmk=161692988')
-        #url = requests.get('http://www.smartphoneshop.nl/product/315855/category-161308-smartphones/alcatel-one-touch-idol-zilver.html')
         self.soup = BeautifulSoup(url.text)
         
         #Call procedures to gather all info needed.
@@ -18,9 +17,9 @@ class Crawler():
         self.getAvailability()
         self.getPhoneBrand()
         self.getPhoneType()
-        print self.price
+        
         # Instantiate comparator to compare crawled data to database data and update the database if needed.
-        comparator = Comparator.Comparator(self.availability, self.price, 'www.coolblue.nl', self.brand, self.type)
+        comparator = Comparator.Comparator(self.availability_low, self.availability_high, self.price, 'www.coolblue.nl', self.brand, self.type)
         comparator.compare()
 
     def getPrice(self): #Procedure to extract price and availability status from the web page.        
@@ -44,7 +43,8 @@ class Crawler():
         #Numeric values are used for the availability. The number indicates the amount of days it will take for it to be available.
         #If it is available, availability must be set to 0'
         if self.availability == 'op voorraad':
-            self.availability = 0
+            self.availability_low = 0
+            self.availability_high = 0
         else: #If it's not in stock, availability must be set to the expected arrival time of the product.
             availabilitySoup = str(self.soup.find('div', attrs="productInformationHeaderCollection"))
             begin = availabilitySoup[availabilitySoup.find('Verwacht:'):].find('state3') + 8 + availabilitySoup.find('Verwacht')
@@ -52,13 +52,15 @@ class Crawler():
             self.availability = availabilitySoup[begin:end]
             
             if self.availability == 'leverdatum onbekend': #If availability date is unknown, give it a -1 value. 
-                self.availability = -1
+                self.availability_low = -1
+                self.availability_high = -1
             elif self.availability[:4] == 'week':
                 #Extract only the date (day, month)
                 date = self.availability[self.availability.find('-')+2:]
                 #Instantiate module to calculate the difference between today and availability date.
                 timecalculator = TimeCalculator.TimeCalculator(date)
-                self.availability = timecalculator.caluclateTime()
+                self.availability_high = timecalculator.caluclateTime()
+                self.availability_low = self.availability_low -5
     
     def getPhoneBrand(self): #Procedure to find the phone brand and type
         #Search for the relevant HTML and extract phone brand
@@ -78,16 +80,12 @@ class Crawler():
             self.type = typeSoup[self.brand.__len__()+2:end]
         else:
             self.type = typeSoup[1:end]
-            
-    def compare(self):
-        # Set the info for the database instance
-        db = DeliveryInfo.DeliveryInfo()
-        db.setInfo(self.availability, self.price, 'www.coolblue.nl', self.brand, self.type)
-        deliveryInfo = db.getDeliveryInfo() #Get the current price and availability from the database first.
         
-        #If the crawled info doesn't match the info from the database, update the database.
-        if deliveryInfo[0] != self.price or deliveryInfo[1] != self.availability:
-            db.update()
-    
+        #Adjust name so it fits the one in the db
+        if 'galaxy s4' in self.type.lower():
+            self.type = 'Galaxy S4 i9505 16GB Black'
+        elif 'galaxy s4 wit' in self.type.lower():
+            self.type = 'Galaxy S4 i9505 16GB White'
+        
 crawler = Crawler()
 crawler.main()

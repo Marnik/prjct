@@ -6,8 +6,9 @@ class DeliveryInfo():
     db = Database()
         
         #Set info needed to insert/select/update database
-    def setInfo(self, availability, price, url, phoneBrand, phoneType):
-        self.availability = availability;
+    def setInfo(self, availability_low, availability_high, price, url, phoneBrand, phoneType):
+        self.availability_low = availability_low
+        self.availability_high = availability_high
         self.price = price
         self.url = url
         self.phoneBrand = phoneBrand
@@ -40,7 +41,7 @@ class DeliveryInfo():
         self.getWebID()
         self.getPhoneID()
 
-        com = "SELECT price, availability FROM deliveryinfo WHERE website_id = (%s) AND phone_id = (%s)"
+        com = "SELECT price, availability_low, availability_high FROM deliveryinfo WHERE website_id = (%s) AND phone_id = (%s)"
         vals = [self.webID, self.phoneID]
         result = self.db.select(com, vals)
         li = []
@@ -48,6 +49,7 @@ class DeliveryInfo():
         for row in result:
             li.append(row[0])
             li.append(row[1])
+            li.append(row[2])
         return li
     
     def update(self):
@@ -55,7 +57,7 @@ class DeliveryInfo():
         self.getWebID()
         self.getPhoneID()
         
-        com = "UPDATE deliveryinfo SET price = (%s), availability = (%s) WHERE website_id = (%s) AND phone_id = (%s)"
-        vals = [self.price, self.availability, self.webID, self.phoneID]
+        com = "UPDATE deliveryinfo SET price = (%s), availability_low = (%s), availability_high = (%s) WHERE website_id = (%s) AND phone_id = (%s)"
+        vals = [self.price, self.availability_low, self.availability_high, self.webID, self.phoneID]
         self.db.insert(com, vals)
         

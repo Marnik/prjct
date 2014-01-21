@@ -34,8 +34,5 @@ class TimeCalculator():
         #Calculate the difference between the two dates. Then return only the days.
         dateDifference = availabilityDate - curDate
         dateDifference = str(dateDifference).split()
-        print dateDifference[0]
         return dateDifference[0]
-bla = TimeCalculator('4 oktober')
-bla.caluclateTime()
         

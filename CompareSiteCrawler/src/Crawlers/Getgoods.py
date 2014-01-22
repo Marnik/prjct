@@ -61,7 +61,6 @@ class Crawler():
     def getPhoneType(self): #Procedure to find the type of the current phone
         typeSoup = self.soup.find('div', attrs={'id' : 'detailbox_middle'})
         typeSoup = str(typeSoup.find('h1').text)
-        print typeSoup
         
         #If the typeSoup contains the brand name, make sure it doesn't get saved with the type. Else just get whole name
         if self.brand in typeSoup:

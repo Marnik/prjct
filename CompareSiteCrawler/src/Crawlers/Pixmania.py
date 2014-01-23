@@ -12,7 +12,6 @@ class Crawler():
     def main(self):
         # Get the HTML of the page using BeautifulSoup
         url = requests.get('http://www.pixmania.fr/smartphone/samsung-galaxy-s4-16-go-i9505-noir/21361758-a.html')
-        #url = requests.get('http://www.pixmania.fr/smartphone/sony-xperia-u-noir/14705956-a.html')
         self.soup = BeautifulSoup(url.text)
         
         #Call procedures to gather all info needed.

@@ -7,21 +7,27 @@ from Database import DeliveryInfo
 
 class Comparator():
     
-    def __init__(self, availability_low, availability_high, price, url, brand, type):
-        self.availability_low = availability_low
-        self.availability_high = availability_high
+    def __init__(self, availability, price, producturl, weburl, ean):
+        self.availability = availability
         self.price = price
-        self.url = url
-        self.brand = brand
-        self.type = type
+        self.producturl = producturl 
+        self.weburl = weburl #used for getting website id for foreign key in deliveryinfo table
+        self.ean = ean #used for getting phone id for foreign key in deliveryinfo table
         
     def compare(self):
         # Set the info for the database instance
         db = DeliveryInfo.DeliveryInfo()
-        db.setInfo(self.availability_low, self.availability_high, self.price, self.url, self.brand, self.type)
+        db.setInfo(self.availability, self.price, self.producturl, self.weburl, self.ean)
         deliveryInfo = db.getDeliveryInfo() #Get the current price and availability from the database first.
+        
+        print self.producturl
 
-        #If the crawled info doesn't match the info from the database, update the database.
-        if deliveryInfo[0] != self.price or deliveryInfo[1] != self.availability_low or deliveryInfo[2] != self.availability_high:
-            db.update()
+        if deliveryInfo == []: #If result is empty, product data is not inserted in db yet so do this
+            print 'no record, saving for ' +self.weburl
+            db.save()
+        else: #Else if the result is not empty, check if the result are the same as the just crawled data. If not, update the database
+            print 'checking for updates for ' +self.weburl
+            if str(deliveryInfo[0]) != self.price or deliveryInfo[1] != str(self.availability) or deliveryInfo[2] != self.producturl:
+                print 'updating db for ' +self.weburl
+                db.update()
         

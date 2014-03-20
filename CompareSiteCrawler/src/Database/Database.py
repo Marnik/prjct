@@ -18,7 +18,7 @@ class Database:
             ver = cur.fetchall()
             return ver
         except  mdb.Error as e:
-            print None
+            print e
         finally:
             if self.con:
                 self.con.close()

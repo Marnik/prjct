@@ -19,15 +19,13 @@ class Comparator():
         db = DeliveryInfo.DeliveryInfo()
         db.setInfo(self.availability, self.price, self.producturl, self.weburl, self.ean)
         deliveryInfo = db.getDeliveryInfo() #Get the current price and availability from the database first.
-        
-        print self.producturl
 
         if deliveryInfo == []: #If result is empty, product data is not inserted in db yet so do this
             print 'no record, saving for ' +self.weburl
             db.save()
         else: #Else if the result is not empty, check if the result are the same as the just crawled data. If not, update the database
             print 'checking for updates for ' +self.weburl
-            if str(deliveryInfo[0]) != self.price or deliveryInfo[1] != str(self.availability) or deliveryInfo[2] != self.producturl:
+            if str(deliveryInfo[0]) != str(self.price) or deliveryInfo[1] != str(self.availability) or deliveryInfo[2] != self.producturl:
                 print 'updating db for ' +self.weburl
                 db.update()
         

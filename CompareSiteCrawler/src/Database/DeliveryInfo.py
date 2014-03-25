@@ -64,7 +64,7 @@ class DeliveryInfo():
         return result
     
     def getProducts(self):#Procedure to get the eans from products
-        com = "SELECT ean FROM phones"
+        com = "SELECT ean, ASIN FROM phones"
         result = self.db.select(com, None)
         return result
     

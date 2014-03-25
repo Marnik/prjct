@@ -11,8 +11,9 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 import time
+import sys
 
-class Coolblue():
+class Crawler():
     
     def main(self):
         print 'starting...'
@@ -56,19 +57,17 @@ class Coolblue():
                             decimalFinder = self.price.find('.') 
                             if decimalFinder == -1: #If it is a round number, add decimals so the db won't be updated unnecessary
                                 self.price = self.price + '.00'
-                        for child in index.iterfind('column[@name="stock"]'):
-                            self.stock = child.text
-                            if self.stock == None:
-                                self.stock = 0
+                        for child in index.iterfind('column[@name="availability"]'):
+                            self.availability = child.text
+                            if self.availability == None:
+                                self.availability = 0
                         for child in index.iterfind('column[@name="url"]'):
                             self.producturl = child.text
-                            print self.producturl
-
-                        comparator = Comparator.Comparator(self.stock, self.price, self.producturl, self.weburl, ean)
+                        comparator = Comparator.Comparator(self.availability, self.price, self.producturl, self.weburl, ean)
                         comparator.compare()
                 except:
-                    pass
+                    print sys.exc_info()[0]
 
         
-z = Coolblue()
-z.main()
+c = Crawler()
+c.main()

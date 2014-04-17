@@ -1,8 +1,7 @@
 import MySQLdb as mdb
-import sys
 
 class Database:
-    con=""
+
     def __init__(self):
         self.host = "localhost"
         self.user = "root"

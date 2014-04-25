@@ -5,7 +5,7 @@ Created on 16 apr. 2014
 '''
 import urllib2
 from CrawlerHelpScripts import Comparator
-from Database import dell
+from Database import Database
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -13,13 +13,27 @@ except ImportError:
 import time
 
 class Crawler():
+    '''
+    Create the lists that will be passed trough to the comparator. 
+    This is so the data will be saved in batches
+    '''
+    titles = []
+    brands = []
+    prices = []
+    availabilitys = []
+    eans = []
+    producturls = []
+    weburls = []
     
     def main(self):
+        
         start_time = time.time()
         print 'starting...'
         #First get the programmes with download links from the database and the ean numbers of products to search for
-        db = dell.DeliveryInfo()
+        db = Database.Queries()
+        db.openConnection()
         programmes = db.getZanoxProgrammes()
+        db.closeConnection()
         
         #Download xml file for each programme       
         for programme in programmes:
@@ -34,40 +48,71 @@ class Crawler():
             root = ET.fromstring(data)
             #find all records
             self.records = root.findall("data/record")
-            print len(self.records)
+
             self.getInfo()
     
         print 'completed in: ' , time.time() - start_time
     
     def getInfo(self):
-        #For each item in the list, go trough the child elements, which is the product data.    
+        
+        #For each item in the list, go trough the child elements, which is the product data.   
         for index in self.records:
             #Gather all the product data
             for child in index.iterfind('column[@name="ean"]'):
-                self.ean = child.text
+                ean = child.text
                 
-            if self.ean != None:#If the ean code is empty, don't execute remaining code
+            if ean != None:#If the ean code is not empty, don't execute remaining code
+                
+                self.eans.append(ean)
                 
                 for child in index.iterfind('column[@name="title"]'):
-                    self.title = child.text
+                    try:
+                        self.titles.append(str(child.text))
+                    except:
+                        print 'error'
+                        self.titles.append('unicode error')
+                        '''
+                        unicode aan passen: UnicodeEncodeError: 'charmap' codec can't encode character
+                        '''
                 for child in index.iterfind('column[@name="vendor"]'):
-                    self.brand = child.text
+                    self.brands.append(child.text)
                 for child in index.iterfind('column[@name="price"]'):
-                    price = child.text
                     #Replace , with a '.' to avoid truncated data
-                    self.price = price.replace(',', '.')
+                    self.prices.append(child.text.replace(',', '.'))
         
-                    decimalFinder = self.price.find('.') 
+                    decimalFinder = self.prices[-1].find('.') 
                     if decimalFinder == -1: #If it is a round number, add decimals so the db won't be updated unnecessary
-                        self.price = price + '.00'
+                        self.prices[-1] = self.prices[-1] + '.00'
                 for child in index.iterfind('column[@name="timetoship"]'):
-                    self.availability = child.text
+                    self.availabilitys.append(child.text)
                 for child in index.iterfind('column[@name="url"]'):
-                    self.producturl = child.text
-
-                comparator = Comparator.Comparator(self.title, self.brand, self.price, self.availability, self.ean, self.producturl, self.weburl)
-                comparator.main()
+                    self.producturls.append(child.text)
                 
+                self.weburls.append(self.weburl)
+
+                if len(self.titles) == 1000:#Start comparing when 1000 products have been crawled
+                    print 'start comparison'
+                    comparator = Comparator.Comparator(self.titles, self.brands, self.prices, self.availabilitys, self.eans, self.producturls, self.weburls)
+                    comparator.main()
+                    
+                    #Reset lists
+                    self.titles = []
+                    self.brands = []
+                    self.prices = []
+                    self.availabilitys = []
+                    self.eans = []
+                    self.producturls = []
+                    self.weburls = []
+
+                '''  
+                print "prices: " + str(len(self.prices))
+                print "brands: " + str(len(self.brands))
+                print "availabilitys: " + str(len(self.availabilitys))
+                print "producturls: "  + str(len(self.producturls))
+                print "weburls: " + str(len(self.weburls))
+                print "eans: " + str(len(self.eans))
+                print "titles: " + str(len(self.titles))
+                '''
             
 c = Crawler()    
 c.main()

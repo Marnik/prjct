@@ -7,22 +7,24 @@ the same, the database needs to be updated
 '''
 class Comparator():
     
-    def __init__(self, titles, brands, prices, availabilitys, eans, producturls, weburls):
+    def __init__(self, titles, brands, prices, availabilitys, stocks, eans, producturls, weburls, images):
         self.titles = titles
         self.brands = brands
         self.prices = prices
         self.availabilitys = availabilitys
+        self.stocks = stocks
         self.eans = eans
         self.producturls = producturls
         self.weburls = weburls
+        self.images = images
         self.db = Database.Queries()
 
     def main(self):
         self.db.openConnection()#Open database connection before starting
         #For every product, compare and save data
-        for self.title, self.brand, self.price, self.availability, self.ean, self.producturl, self.weburl in zip(self.titles, self.brands, self.prices, self.availabilitys, self.eans, self.producturls, self.weburls):
-            self.db.setInfo(self.title, self.brand, self.price, self.availability, self.ean, self.producturl, self.weburl)
-            #self.db.saveProducts()
+        for self.title, self.brand, self.price, self.availability, self.stock, self.ean, self.producturl, self.weburl, self.image in zip(self.titles, self.brands, self.prices, self.availabilitys, self.stocks, self.eans, self.producturls, self.weburls, self.images):
+            self.db.setInfo(self.title, self.brand, self.price, self.availability, self.stock, self.ean, self.producturl, self.weburl, self.image)
+            self.db.saveProducts()
             self.compare()
         self.db.closeConnection() #Close connection when done
        

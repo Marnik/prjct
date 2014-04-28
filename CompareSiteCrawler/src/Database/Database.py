@@ -39,7 +39,6 @@ class Connection:
         self.cur.execute('SET character_set_connection=utf8;')
                 
     def closeConnection(self):
-        print 'hallo'
         if self.con:
             print 'closing'
             print self.con
@@ -51,23 +50,25 @@ class Queries:
     db = Connection()
         
     #Set info needed to insert/select/update database
-    def setInfo(self, title, brand, price, availability, ean, producturl, weburl):
+    def setInfo(self, title, brand, price, availability, stock, ean, producturl, weburl, image):
         self.title = title
         self.brand = brand
         self.price = price
         self.availability = availability
+        self.stock = stock
         self.producturl = producturl
         self.weburl = weburl #used for foreign key assignments
         self.ean = ean #used for foreign key assignments
+        self.image = image
 
     def saveProducts(self):#Save the product data to the database
-        com = "INSERT INTO Products (ean, brand, title) VALUES ((%s), (%s), (%s))"
-        vals = [self.ean, self.brand, self.title]
+        com = "INSERT INTO Products (ean, brand, title, image_url) VALUES ((%s), (%s), (%s), (%s))"
+        vals = [self.ean, self.brand, self.title, self.image]
         self.db.insert(com,vals)
 
     def saveDeliveryInfo(self):#Save the deliveryinfo to the database     
-        com = "INSERT INTO deliveryinfo (price, availability, url, website_url, product_ean) VALUES ((%s), (%s), (%s), (%s), (%s))" 
-        vals = [str(self.price),str(self.availability), str(self.producturl), self.weburl, self.ean]
+        com = "INSERT INTO deliveryinfo (price, availability, stock, url, website_url, product_ean) VALUES ((%s), (%s), (%s), (%s), (%s), (%s))" 
+        vals = [str(self.price),str(self.availability), self.stock, str(self.producturl), self.weburl, self.ean]
         self.db.insert(com, vals);
         
     def getDeliveryInfo(self): #Procedure to get the delivery info from the database, used to check if anything changed.

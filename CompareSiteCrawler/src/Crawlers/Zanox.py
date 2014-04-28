@@ -11,6 +11,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 import time
+import re
 
 class Crawler():
     '''
@@ -21,9 +22,11 @@ class Crawler():
     brands = []
     prices = []
     availabilitys = []
+    stocks = []
     eans = []
     producturls = []
     weburls = []
+    images = []
     
     def main(self):
         
@@ -59,10 +62,12 @@ class Crawler():
         for index in self.records:
             #Gather all the product data
             for child in index.iterfind('column[@name="ean"]'):
-                ean = child.text
-                
-            if ean != None:#If the ean code is not empty, don't execute remaining code
-                
+                ean = str(child.text)
+            
+            #Validate ean
+            match = re.match('[0-9]{10,13}', ean)
+            if match:#If the ean code is not valid, don't execute remaining code
+                match =  None #reset match so not every ean will validate
                 self.eans.append(ean)
                 
                 for child in index.iterfind('column[@name="title"]'):
@@ -85,14 +90,18 @@ class Crawler():
                         self.prices[-1] = self.prices[-1] + '.00'
                 for child in index.iterfind('column[@name="timetoship"]'):
                     self.availabilitys.append(child.text)
+                for child in index.iterfind('column[@name="stock"]'):
+                    self.stocks.append(child.text)
                 for child in index.iterfind('column[@name="url"]'):
                     self.producturls.append(child.text)
+                for child in index.iterfind('column[@name="image"]'):
+                    self.images.append(child.text)
                 
                 self.weburls.append(self.weburl)
 
                 if len(self.titles) == 1000:#Start comparing when 1000 products have been crawled
                     print 'start comparison'
-                    comparator = Comparator.Comparator(self.titles, self.brands, self.prices, self.availabilitys, self.eans, self.producturls, self.weburls)
+                    comparator = Comparator.Comparator(self.titles, self.brands, self.prices, self.availabilitys, self.stocks, self.eans, self.producturls, self.weburls, self.images)
                     comparator.main()
                     
                     #Reset lists
@@ -100,9 +109,11 @@ class Crawler():
                     self.brands = []
                     self.prices = []
                     self.availabilitys = []
+                    self.stocks = []
                     self.eans = []
                     self.producturls = []
                     self.weburls = []
+                    self.images = []
 
                 '''  
                 print "prices: " + str(len(self.prices))

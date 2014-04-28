@@ -28,13 +28,28 @@ for row in ws.iter_rows(row_offset=1):
                 #Extract the name from the website
                 begin = weburl.find('.')+1
                 end = weburl[begin:].find('.')+begin
-                name = weburl[begin:end].title()
+                
+                #If the end variable equals begin-1, there is no www. in it. So then just extract till the 1st '.'
+                if end == begin-1:
+                    name = weburl[:begin].title()
+                else:
+                    name = weburl[begin:end].title()
             elif cell.column == 'B':
                 country = cell.internal_value
             elif cell.column == 'C':
                 sender = cell.internal_value
             elif cell.column == 'D':
                 shipping_price = cell.internal_value
+                
+                try:
+                    #Replace , with a '.' to avoid truncated data
+                    shipping_price = shipping_price.replace(',', '.')
+        
+                    decimalFinder = shipping_price.find('.') 
+                    if decimalFinder == -1: #If it is a round number, add decimals so the db won't be updated unnecessary
+                        shipping_price = shipping_price + '.00'
+                except:
+                    pass
             elif cell.column == 'E':
                 mark = cell.internal_value
             if cell.column == 'G':

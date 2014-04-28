@@ -93,6 +93,11 @@ class Queries:
         result = self.db.select(com, None)
         return result
     
+    def saveWebsites(self, weburl, name, country, shipping_price): #Used to save websites to the database from WebsiteParser module
+        com = "INSERT INTO websites (url, name, country, shipping_price) VALUES ((%s), (%s), (%s), (%s))"
+        vals = [weburl, name, country, shipping_price]
+        self.db.insert(com, vals)
+    
     def closeConnection(self):
         self.db.closeConnection()
         

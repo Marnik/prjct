@@ -1,18 +1,5 @@
-'''
-Module to test stuff
-'''
+import types
 
-import re
-
-match = re.match('[0-9]{10,13}', '837463718372')
-print match
-if match:
-    print 'match bij 1'
-else:
-    'geen match bij 1'
-match = None
-print match
-if match:
-    print 'match bij 2'
-else:
-    print 'geen match bij 2'
+str = ["hallo", "hallo2"]
+if isinstance(str, types.ListType):
+    print 'hallo'

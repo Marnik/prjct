@@ -51,7 +51,7 @@ class Crawler():
             root = ET.fromstring(data)
             #find all records
             self.records = root.findall("data/record")
-
+            
             self.getInfo()
     
         print 'completed in: ' , time.time() - start_time
@@ -62,8 +62,11 @@ class Crawler():
         for index in self.records:
             #Gather all the product data
             for child in index.iterfind('column[@name="ean"]'):
-                ean = str(child.text)
-            
+                try:
+                    ean = str(child.text)
+                except:#If unicode error appears, assign 'Error' to ean so it will nog pass validation
+                    ean = 'Error'
+                    
             #Validate ean
             match = re.match('[0-9]{10,13}', ean)
             if match:#If the ean code is not valid, don't execute remaining code
@@ -81,6 +84,7 @@ class Crawler():
                         '''
                 for child in index.iterfind('column[@name="vendor"]'):
                     self.brands.append(child.text)
+                    
                 for child in index.iterfind('column[@name="price"]'):
                     #Replace , with a '.' to avoid truncated data
                     self.prices.append(child.text.replace(',', '.'))
@@ -88,12 +92,16 @@ class Crawler():
                     decimalFinder = self.prices[-1].find('.') 
                     if decimalFinder == -1: #If it is a round number, add decimals so the db won't be updated unnecessary
                         self.prices[-1] = self.prices[-1] + '.00'
+                        
                 for child in index.iterfind('column[@name="timetoship"]'):
                     self.availabilitys.append(child.text)
+                    
                 for child in index.iterfind('column[@name="stock"]'):
                     self.stocks.append(child.text)
+                    
                 for child in index.iterfind('column[@name="url"]'):
                     self.producturls.append(child.text)
+                    
                 for child in index.iterfind('column[@name="image"]'):
                     self.images.append(child.text)
                 

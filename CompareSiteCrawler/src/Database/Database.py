@@ -1,4 +1,5 @@
 import MySQLdb as mdb
+import types
 
 class Connection:
 
@@ -94,10 +95,49 @@ class Queries:
         result = self.db.select(com, None)
         return result
     
-    def saveWebsites(self, weburl, name, country, shipping_price): #Used to save websites to the database from WebsiteParser module
+    def saveWebsiteInfo(self, weburl, name, country, shipping_price, sender, mark, payment_method): #Used to save websites to the database from WebsiteParser module
+        #First save basic data to websites table
         com = "INSERT INTO websites (url, name, country, shipping_price) VALUES ((%s), (%s), (%s), (%s))"
         vals = [weburl, name, country, shipping_price]
         self.db.insert(com, vals)
+        
+        #Save payment_method, sender & mark info
+        self.savePaymentMethods(payment_method, weburl)
+        self.saveMarks(mark, weburl)
+        self.saveSenders(sender, weburl)
+        
+    def savePaymentMethods(self, payment_method, weburl):
+        com = "INSERT INTO payment_methods (method, website_url) VALUES ((%s), (%s))"
+        if payment_method != None and payment_method != "None": 
+            if isinstance(payment_method, types.ListType): #If the type is list, multiple values need to be saved
+                for method in payment_method:
+                    vals = [method, weburl]
+                    self.db.insert(com, vals)
+            else: #Else, it's a single value that needs to be saved
+                vals = [payment_method, weburl]
+                self.db.insert(com, vals)
+                
+    def saveMarks(self, mark, weburl):
+        com = "INSERT INTO marks (mark, website_url) VALUES ((%s), (%s))"
+        if mark != None and mark != "None":
+            if isinstance(mark, types.ListType): #If the type is list, multiple values need to be saved
+                for record in mark:
+                    vals = [record, weburl]
+                    self.db.insert(com, vals)
+            else: #Else, it's a single value that needs to be saved
+                vals = [mark, weburl]
+                self.db.insert(com, vals)
+                
+    def saveSenders(self, sender, weburl):
+        com = "INSERT INTO senders (sender, website_url) VALUES ((%s), (%s))"
+        if sender != None and sender != "None":
+            if isinstance(sender, types.ListType): #If the type is list, multiple values need to be saved
+                for record in sender:
+                    vals = [record, weburl]
+                    self.db.insert(com, vals)
+            else:  #Else, it's a single value that needs to be saved
+                vals = [sender, weburl]
+                self.db.insert(com, vals)
     
     def closeConnection(self):
         self.db.closeConnection()

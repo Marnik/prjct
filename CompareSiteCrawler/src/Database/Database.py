@@ -1,5 +1,9 @@
 import MySQLdb as mdb
 import types
+from CrawlerHelpScripts import logger
+import time
+
+log = logger.createLogger("databaseLogger", "database")
 
 class Connection:
 
@@ -18,33 +22,30 @@ class Connection:
             ver = self.cur.fetchall()
             return ver
         except  mdb.Error as e:
-            print e
+            log.error(str(time.asctime( time.localtime(time.time()) )) + " " + str(e))
     
     def insert(self, com, vals):
         try:
-            print self.con
             self.cur.execute(com, vals)
             self.con.commit()
         except mdb.Error as e:
-            print e
+            log.error(str(time.asctime( time.localtime(time.time()) )) + " " + str(e))
        
     def openConnection(self):
-        print "opening connection"
+        log.info(str(time.asctime( time.localtime(time.time()) ))+ " opening connection")
         self.con = mdb.connect(self.host, self.user, self.password, self.database)
         self.cur = self.con.cursor()
-        print self.con
+        '''
         #Set encoding to utf-8 to avoid unicode errors
         self.con.set_character_set('utf8')
         self.cur.execute('SET NAMES utf8;') 
         self.cur.execute('SET CHARACTER SET utf8;')
-        self.cur.execute('SET character_set_connection=utf8;')
+        self.cur.execute('SET character_set_connection=utf8;')'''
                 
     def closeConnection(self):
         if self.con:
-            print 'closing'
-            print self.con
+            log.info(str(time.asctime( time.localtime(time.time()) ))+ " closing connection")
             self.con.close()
-            print self.con
         
 
 class Queries:
@@ -63,7 +64,7 @@ class Queries:
         self.image = image
 
     def saveProducts(self):#Save the product data to the database
-        com = "INSERT INTO Products (ean, brand, title, image_url) VALUES ((%s), (%s), (%s), (%s))"
+        com = "INSERT IGNORE INTO Products (ean, brand, title, image_url) VALUES ((%s), (%s), (%s), (%s))"
         vals = [self.ean, self.brand, self.title, self.image]
         self.db.insert(com,vals)
 
@@ -86,7 +87,7 @@ class Queries:
         return li
     
     def update(self): #Procedure to update the info
-        com = "UPDATE deliveryinfo SET price = (%s), availability = (%s), url = (%s) WHERE website_url = (%s) AND products_ean = (%s)"
+        com = "UPDATE deliveryinfo SET price = (%s), availability = (%s), url = (%s) WHERE website_url = (%s) AND product_ean = (%s)"
         vals = [self.price, self.availability, self.producturl, self.weburl, self.ean]
         self.db.insert(com, vals)
         
@@ -97,7 +98,7 @@ class Queries:
     
     def saveWebsiteInfo(self, weburl, name, country, shipping_price, sender, mark, payment_method): #Used to save websites to the database from WebsiteParser module
         #First save basic data to websites table
-        com = "INSERT INTO websites (url, name, country, shipping_price) VALUES ((%s), (%s), (%s), (%s))"
+        com = "INSERT IGNORE INTO websites (url, name, country, shipping_price) VALUES ((%s), (%s), (%s), (%s))"
         vals = [weburl, name, country, shipping_price]
         self.db.insert(com, vals)
         
@@ -107,7 +108,7 @@ class Queries:
         self.saveSenders(sender, weburl)
         
     def savePaymentMethods(self, payment_method, weburl):
-        com = "INSERT INTO payment_methods (method, website_url) VALUES ((%s), (%s))"
+        com = "INSERT IGNORE INTO payment_methods (method, website_url) VALUES ((%s), (%s))"
         if payment_method != None and payment_method != "None": 
             if isinstance(payment_method, types.ListType): #If the type is list, multiple values need to be saved
                 for method in payment_method:
@@ -118,7 +119,7 @@ class Queries:
                 self.db.insert(com, vals)
                 
     def saveMarks(self, mark, weburl):
-        com = "INSERT INTO marks (mark, website_url) VALUES ((%s), (%s))"
+        com = "INSERT IGNORE INTO marks (mark, website_url) VALUES ((%s), (%s))"
         if mark != None and mark != "None":
             if isinstance(mark, types.ListType): #If the type is list, multiple values need to be saved
                 for record in mark:
@@ -129,7 +130,7 @@ class Queries:
                 self.db.insert(com, vals)
                 
     def saveSenders(self, sender, weburl):
-        com = "INSERT INTO senders (sender, website_url) VALUES ((%s), (%s))"
+        com = "INSERT IGNORE INTO senders (sender, website_url) VALUES ((%s), (%s))"
         if sender != None and sender != "None":
             if isinstance(sender, types.ListType): #If the type is list, multiple values need to be saved
                 for record in sender:

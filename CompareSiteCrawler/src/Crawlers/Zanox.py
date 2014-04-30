@@ -1,8 +1,3 @@
-'''
-Created on 16 apr. 2014
-
-@author: Marnik
-'''
 import urllib2
 from CrawlerHelpScripts import Comparator
 from Database import Database
@@ -10,8 +5,11 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-import time
 import re
+import time
+from CrawlerHelpScripts import logger
+
+log = logger.createLogger("zanoxLogger", "zanox")
 
 class Crawler():
     '''
@@ -29,9 +27,8 @@ class Crawler():
     images = []
     
     def main(self):
-        
         start_time = time.time()
-        print 'starting...'
+        log.info('starting crawler')
         #First get the programmes with download links from the database and the ean numbers of products to search for
         db = Database.Queries()
         db.openConnection()
@@ -41,7 +38,7 @@ class Crawler():
         #Download xml file for each programme       
         for programme in programmes:
             self.weburl = programme[0] #Used later for database to find website id
-            print 'busy with'  +programme[0]
+            log.info(str(time.asctime( time.localtime(time.time()) ))+ ' busy with'  +programme[0])
             
             xmlfile = urllib2.urlopen(programme[1])
             #convert to string:
@@ -53,8 +50,7 @@ class Crawler():
             self.records = root.findall("data/record")
             
             self.getInfo()
-    
-        print 'completed in: ' , time.time() - start_time
+        log.info(str(time.asctime( time.localtime(time.time()) ))+ ' completed in: ' , time.time() - start_time)
     
     def getInfo(self):
         
@@ -77,7 +73,7 @@ class Crawler():
                     try:
                         self.titles.append(str(child.text))
                     except:
-                        print 'error'
+                        log.error(str(time.asctime( time.localtime(time.time()) ))+ ' title produces a unicode error')
                         self.titles.append('unicode error')
                         '''
                         unicode aan passen: UnicodeEncodeError: 'charmap' codec can't encode character
@@ -108,7 +104,7 @@ class Crawler():
                 self.weburls.append(self.weburl)
 
                 if len(self.titles) == 1000:#Start comparing when 1000 products have been crawled
-                    print 'start comparison'
+                    log.info(str(time.asctime( time.localtime(time.time()) ))+ ' starting comparison')
                     comparator = Comparator.Comparator(self.titles, self.brands, self.prices, self.availabilitys, self.stocks, self.eans, self.producturls, self.weburls, self.images)
                     comparator.main()
                     
@@ -122,16 +118,6 @@ class Crawler():
                     self.producturls = []
                     self.weburls = []
                     self.images = []
-
-                '''  
-                print "prices: " + str(len(self.prices))
-                print "brands: " + str(len(self.brands))
-                print "availabilitys: " + str(len(self.availabilitys))
-                print "producturls: "  + str(len(self.producturls))
-                print "weburls: " + str(len(self.weburls))
-                print "eans: " + str(len(self.eans))
-                print "titles: " + str(len(self.titles))
-                '''
             
 c = Crawler()    
 c.main()

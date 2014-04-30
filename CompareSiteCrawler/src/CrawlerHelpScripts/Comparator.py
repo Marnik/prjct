@@ -1,5 +1,8 @@
-
 from Database import Database
+import logger
+import time
+
+log = logger.createLogger("comparatorLogger", "comparator")
 
 '''
 The comparator is used to compare the crawler product data to the data stored in the database. If the data is not
@@ -32,10 +35,10 @@ class Comparator():
         deliveryInfo = self.db.getDeliveryInfo() #Get the current price and availability from the database first.
         
         if deliveryInfo == []: #If result is empty, product data is not inserted in db yet so do this
-            print 'no record, saving for ' +self.weburl+ ' for ' + self.title
+            log.info(str(time.asctime( time.localtime(time.time()) ))+ ' no record, saving for ' +self.weburl+ ' for ' + self.title)
             self.db.saveDeliveryInfo()
         else: #Else if the result is not empty, check if the result are the same as the just crawled data. If not, update the database
-            print 'checking for updates for ' +self.weburl+ ' for ' + self.title
+            log.info(str(time.asctime( time.localtime(time.time()) ))+ ' checking for updates for ' +self.weburl+ ' for ' + self.title)
             if str(deliveryInfo[0]) != self.price or deliveryInfo[1] != str(self.availability) or deliveryInfo[2] != self.producturl:
-                print 'updating db for ' +self.weburl
+                log.info(str(time.asctime( time.localtime(time.time()) ))+ ' updating db for ' +self.weburl)
                 self.db.update()
